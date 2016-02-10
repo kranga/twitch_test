@@ -1,0 +1,287 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Twitch test</title>
+
+<style>
+	body {
+		font-family: sans-serif;
+	}
+	.container {
+		max-width: 960px;
+		height: 90vh;
+		margin: 20px auto 0 auto;
+	    border: 1px solid black;
+	    position: relative;
+	}
+	.header {
+		width: 100%;
+		height: 100px;
+		border-bottom: 1px solid black;
+	}
+	.search-line {
+		padding: 50px 0 0 20px;
+	}
+
+	.content {
+		position: absolute;
+		top: 100px;
+		right: 0;
+		bottom: 0;
+		left: 0;
+	}
+
+	.first-line {
+		position: absolute;
+		top: 0;
+		right: 0;
+		left: 0;
+		bottom: 50px;
+	}
+
+	.list-navigation {
+		position: absolute;
+		top: 20px;
+		right: 0;
+		width: 150px;
+	}
+	.list-nav-children {
+		display: inline-block;
+	}
+	#page_indicator {
+		margin-left: 10px;
+		margin-right: 10px;
+		vertical-align: 3px;
+	}
+	#left_arrow {
+		position: relative;
+		width: 0; 
+		height: 0; 
+		border-top: 10px solid transparent;
+		border-bottom: 10px solid transparent; 
+		border-right:10px solid black; 
+	}
+	#right_arrow {
+		position: relative;
+		width: 0; 
+		height: 0; 
+		border-top: 10px solid transparent;
+		border-bottom: 10px solid transparent;
+		border-left: 10px solid black;
+	}
+	.arrow:after {
+		content:'';
+		position:absolute;
+		top:-10px; bottom:-10px; 
+		left:-10px; right:-10px;
+	}
+
+	.twitch-content-list {
+		position: absolute;
+		top: 50px;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		list-style-type:none;
+		overflow-y: auto;
+	}
+	.stream-item {
+		position: relative;
+		width: 100%;
+		height: 108px;
+		margin-bottom: 10px;
+	}
+	.stream-item-image {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 108px;
+		width: 192px;
+		margin: 0px 10px 10px 10px;
+		border: 1px solid black;
+	}
+	.stream-item-text {
+		position: absolute;
+		top: 0;
+		left: 192px;
+		bottom: 0;
+		right: 0;
+		padding-left: 24px;
+	} 
+	.stream-item-title {
+		margin-top: 0;
+		margin-bottom: 0.4em;
+	}
+	.stream-item-subtitle {
+	}
+	.stream-item-desc {
+	}
+</style>
+<body>
+
+<div class="container">
+	<div class="header">
+		<div class="search-line">
+			<input type="text" id="search_query" placeholder="Search query. . .">
+			<button id="search-button" onclick="searchClicked();">Search</button>
+		</div>
+	</div>
+	<div class="content">
+		<div class="first-line">
+			<p id="testcases">Test Cases: 0</p>
+			<div class="list-navigation">
+				<div id="left_arrow" onclick="leftArrowClicked();" class="list-nav-children arrow"></div>
+				<div id="page_indicator" class="list-nav-children">1/10</div>
+				<div id="right_arrow" onclick="rightArrowClicked();" class="list-nav-children arrow"></div>
+			</div>
+		</div>
+		<div id="twitch_content_list" class="twitch-content-list">
+<!-- 		<li class="stream-item">
+				<img class="stream-item-image" src="favicon.ico"/>
+				<div class="stream-item-text">
+					<h2 class="stream-item-title">Stream Display Name</h2>
+					<div class="stream-item-subtitle">Game name - 1234 viewers</div>
+					<div class ="stream-item-desc">Stream decription - </div>
+				</div>
+			</li>
+			<li class="stream-item">
+				<img class="stream-item-image" src="favicon.ico"/>
+				<div class="stream-item-text">
+					<h2 class="stream-item-title">Stream Display Name</h2>
+					<div class="stream-item-subtitle">Game name - 1234 viewers</div>
+					<div class ="stream-item-desc">Stream description - </div>
+				</div>
+			</li> 
+-->
+		</ul>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+var appData = {
+	totalItems : 0,
+	itemsPerPage : 5,	
+	currentPage : 0,
+	totalPages: 1,
+	cachedPages : [],
+	queryString : 'starcraft',
+	clientID : 'd5h37f5a0qy96kq3yyiybu6rc9cfj12',
+	twitchURI: 'https://api.twitch.tv/kraken/search/streams',
+	requestCounter: 0
+};
+
+
+  search('starcraft');
+
+  function searchClicked() {
+  	search(document.getElementById("search_query").value);
+  }
+
+  function leftArrowClicked() {
+  	appData.currentPage = (appData.currentPage + (appData.totalPages-1)) % appData.totalPages;
+  	updatePage();
+  }
+  function rightArrowClicked() {
+  	appData.currentPage = (appData.currentPage+1) % appData.totalPages;
+  	updatePage();
+  }
+
+  function constructTwitchURI() {
+  	var uri;
+
+ //https://api.twitch.tv/kraken/search/streams?callback=foo&client_id=d5h37f5a0qy96kq3yyiybu6rc9cfj12&limit=10&offset=0&q=starcraft
+
+ 	uri = appData.twitchURI  
+ 	+ "?client_id=" + appData.clientID
+ 	+ "&q=" +  appData.queryString
+ 	+ "&offset=" + appData.currentPage*appData.itemsPerPage
+ 	+ "&limit=" + appData.itemsPerPage;
+
+ 	return (uri);
+
+  }
+
+ function searchCallback(res) {
+ 	// console.log(res);
+
+ 	 appData.totalItems = res._total;
+ 	 appData.totalPages = Math.floor(appData.totalItems / appData.itemsPerPage) + 1;
+ 	 appData.currentPage = Math.min(appData.currentPage, appData.totalPages-1);
+ 	 updateIndicators();
+ 	 constructListHTML(res.streams);
+ }
+
+  function updatePage() {
+  	getJSONP(constructTwitchURI(), searchCallback);
+  }
+
+function updateIndicators() {
+	var page, total;
+	total = "Test Cases : " + appData.totalItems;
+	page = (appData.currentPage +1) + " / " + (appData.totalPages);
+	document.getElementById('testcases').innerHTML = total;
+	document.getElementById('page_indicator').innerHTML = page;
+}
+
+ function search(str) {
+ 	appData.cachedPages = [];
+ 	appData.queryString = str;
+ 	appData.currentPage = 0;
+ 	updatePage();
+ }
+
+ function constructListHTML(streams) {
+ 	var str = "";
+ 	for (var i=0; i < streams.length; i++) {
+ 		str += constructSingleListItem(streams[i]);
+ 	}
+ 	appData.cachedPages[appData.currentPage] = str;
+
+ 	document.getElementById("twitch_content_list").innerHTML = str;
+ }
+
+ function constructSingleListItem(obj) {
+ 	var str;
+ 	str = "<li class=\"stream-item\">" + "\n";
+ 	str += "<img class=\"stream-item-image\" src=\"" + obj.preview.medium + "\"/>" + "\n";
+ 	str += "<div class=\"stream-item-text\">";
+ 	str += "<h2 class=\"stream-item-title\">"  + obj.channel.display_name + "</h2>" + "\n";
+ 	str += "<div class=\"stream-item-subtitle\">" + obj.game + " - " + obj.viewers + 
+ 	" viewers</div>" + "\n";
+ 	str += "<div class =\"stream-item-desc\">Stream description - " + obj.channel.status +
+ 	"</div>" + "\n";
+ 	str += "</div>";
+ 	str += "</li>" + "\n";
+ 	return str;
+
+ }
+
+  function getJSONP(url, callback) {
+ 	var cbnum = "cb" + appData.requestCounter++;
+ 	var cbname = "getJSONP." + cbnum;
+ 	url += "&callback=" + cbname;
+
+ 	url = encodeURI(url);
+ 	// console.log(url);
+ 	var script = document.createElement("script");
+
+ 	getJSONP[cbnum] = function(response) {
+ 		try {
+ 			callback(response);
+ 		}
+ 		finally {
+ 			delete getJSONP[cbnum];
+ 			script.parentNode.removeChild(script); 
+ 		}
+
+ 	};
+
+ 	script.src = url;
+ 	document.body.appendChild(script);
+ }
+
+</script>
+</body>
+</html>
