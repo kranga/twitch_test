@@ -207,7 +207,8 @@ var appData = {
  	// console.log(res);
 
  	 appData.totalItems = res._total;
- 	 appData.totalPages = Math.floor(appData.totalItems / appData.itemsPerPage) + 1;
+ 	 appData.totalPages = Math.floor(appData.totalItems / appData.itemsPerPage);
+ 	 if (appData.totalItems % appData.itemsPerPage) appData.totalPages++;
  	 appData.currentPage = Math.min(appData.currentPage, appData.totalPages-1);
  	 updateIndicators();
  	 constructListHTML(res.streams);
